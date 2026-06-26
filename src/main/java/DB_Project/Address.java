@@ -1,3 +1,5 @@
+package DB_Project;
+
 public class Address {
     private String country;
     private String city;
@@ -37,6 +39,10 @@ public class Address {
     public void setHouseNumber(int houseNumber) {
         this.houseNumber = houseNumber;
     }
+
+public String getCountry() {
+    return country;
+}
 
     @Override
     public String toString(){

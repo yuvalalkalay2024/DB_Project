@@ -1,4 +1,4 @@
-
+package DB_Project;
 public class Product implements Comparable<Product>, Cloneable {
 
     public enum Category {

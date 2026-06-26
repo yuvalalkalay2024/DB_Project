@@ -1,3 +1,5 @@
+package DB_Project;
+
 public class SpecialPackProd extends Product {
     private float extraPay;
 

@@ -1,3 +1,5 @@
+package DB_Project;
+
 import java.util.Arrays;
 
 public class Buyer extends Username implements Comparable<Buyer>{

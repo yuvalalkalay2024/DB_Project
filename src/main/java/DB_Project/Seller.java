@@ -1,3 +1,4 @@
+package DB_Project;
 import java.util.Arrays;
 
 public class Seller extends Username implements Comparable<Seller>{
