@@ -1,5 +1,9 @@
 package DB_Project;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -182,8 +186,242 @@ public class SingleSourceOfTruth {
                 return rs.getFloat("total_revenue");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+               e.printStackTrace();
         }
         return 0f;
     }
+
+    public boolean deleteSellerById(int sellerId){
+        // השאילתה מוודאת שאנחנו מוחקים רק משתמש שהוא באמת מוכר ולא קונה
+        String sql = "DELETE FROM Users WHERE user_id = ? AND role = 'SELLER'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // הצבת ה-ID שקיבלנו לתוך סימן השאלה בשאילתה
+            stmt.setInt(1, sellerId);
+            
+            // הרצת השאילתה ובדיקה כמה שורות הושפעו
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("Seller with ID " + sellerId + " deleted successfully (along with their products).");
+                return true;
+            } else {
+                System.out.println("No seller found with ID " + sellerId + ".");
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error deleting seller: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+                
+    public boolean  deleteBuyerById(int buyerId){
+                // השאילתה מוודאת שאנחנו מוחקים רק משתמש שהוא באמת מוכר ולא קונה
+        String sql = "DELETE FROM Users WHERE user_id = ? AND role = 'BUYER'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // הצבת ה-ID שקיבלנו לתוך סימן השאלה בשאילתה
+            stmt.setInt(1, buyerId);
+            
+            // הרצת השאילתה ובדיקה כמה שורות הושפעו
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("Buyer with ID " + buyerId + " deleted successfully (along with their products).");
+                return true;
+            } else {
+                System.out.println("No buyer found with ID " + buyerId + ".");
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error deleting buyer: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+                
+    public boolean deleteProductBySeller(int productId, int sellerId){
+        String sql = "DELETE FROM Products WHERE product_id = ? AND seller_id = ?";
+
+                try (Connection conn = DatabaseConnection.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    
+                    stmt.setInt(1, productId);
+                    stmt.setInt(2, sellerId);
+                    
+                    int rowsAffected = stmt.executeUpdate();
+                    
+                    if (rowsAffected > 0) {
+                        System.out.println("Product ID " + productId + " was successfully deleted from your catalog.");
+                        return true;
+                    } else {
+                        System.out.println("Failed to delete. Either the product ID " + productId + " doesn't exist, or it doesn't belong to Seller ID " + sellerId + ".");
+                        return false;
+                    }
+                    
+                } catch (SQLException e) {
+                    System.err.println("Error deleting product: " + e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                }
+    }
+                
+    public boolean deleteProductByBuyer(int productId, int buyerId){
+                String sql = "DELETE FROM Products WHERE product_id = ? AND buyer_id = ?";
+
+                try (Connection conn = DatabaseConnection.getConnection();
+                    PreparedStatement stmt = conn.prepareStatement(sql)) {
+                    
+                    stmt.setInt(1, productId);
+                    stmt.setInt(2, buyerId);
+                    
+                    int rowsAffected = stmt.executeUpdate();
+                    
+                    if (rowsAffected > 0) {
+                        System.out.println("Product ID " + productId + " was successfully deleted from your catalog.");
+                        return true;
+                    } else {
+                        System.out.println("Failed to delete. Either the product ID " + productId + " doesn't exist, or it doesn't belong to Buyer ID " + buyerId + ".");
+                        return false;
+                    }
+                    
+                } catch (SQLException e) {
+                    System.err.println("Error deleting product: " + e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                }
+    }
+                
+    public boolean  updateSeller(int sellerId, String newUsername, String newPassword){
+        // השאילתה מעדכנת רק משתמשים שהם מסוג SELLER
+        String sql = "UPDATE Users SET username = ?, password = ? WHERE user_id = ? AND role = 'SELLER'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, newUsername);
+            stmt.setString(2, newPassword);
+            stmt.setInt(3, sellerId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("Seller ID " + sellerId + " was successfully updated.");
+                return true;
+            } else {
+                System.out.println("Failed to update. Seller ID " + sellerId + " not found.");
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            // 23505 הוא קוד השגיאה של PostgreSQL למצב שבו מפרים אילוץ UNIQUE
+            if ("23505".equals(e.getSQLState())) {
+                System.err.println("Error: The username '" + newUsername + "' is already taken by another user.");
+            } else {
+                System.err.println("Error updating seller: " + e.getMessage());
+                e.printStackTrace();
+            }
+            return false;
+        }
+    }
+                
+    public boolean updateBuyer(int buyerId, String newUsername, String newPassword){
+        // השאילתה מעדכנת רק משתמשים שהם מסוג SELLER
+        String sql = "UPDATE Users SET username = ?, password = ? WHERE user_id = ? AND role = 'BUYER'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, newUsername);
+            stmt.setString(2, newPassword);
+            stmt.setInt(3, buyerId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("Buyer ID " + buyerId + " was successfully updated.");
+                return true;
+            } else {
+                System.out.println("Failed to update. Buyer ID " + buyerId + " not found.");
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            // 23505 הוא קוד השגיאה של PostgreSQL למצב שבו מפרים אילוץ UNIQUE
+            if ("23505".equals(e.getSQLState())) {
+                System.err.println("Error: The username '" + newUsername + "' is already taken by another user.");
+            } else {
+                System.err.println("Error updating buyer: " + e.getMessage());
+                e.printStackTrace();
+            }
+            return false;
+        }
+    }
+                
+    public boolean  updateProductBySeller(int productId, int sellerId, String newName, double newPrice, String newCategory){
+        // שימוש ב- ::product_category כדי להתאים ל-ENUM שיצרנו בבסיס הנתונים
+        String sql = "UPDATE Products SET name = ?, price = ?, category = ?::product_category WHERE product_id = ? AND seller_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, newName);
+            stmt.setDouble(2, newPrice);
+            stmt.setString(3, newCategory);
+            stmt.setInt(4, productId);
+            stmt.setInt(5, sellerId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("Product ID " + productId + " was successfully updated.");
+                return true;
+            } else {
+                System.out.println("Failed to update. Either Product ID " + productId + " doesn't exist, or it doesn't belong to Seller ID " + sellerId + ".");
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating product: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+            
+    public boolean  updateProductbyBuyer(int buyerId, int productId, int newQuantity){
+        // שים לב: החלף את 'Cart_Products' בשם הטבלה האמיתי שלך מתוך קובץ ה-DDL
+        // ייתכן גם שהעמודות נקראות אצלך cart_id ולא buyer_id, תלוי איך מידלת את העגלה.
+        String sql = "UPDATE Cart_Products SET quantity = ? WHERE buyer_id = ? AND product_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, newQuantity);
+            stmt.setInt(2, buyerId);
+            stmt.setInt(3, productId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                System.out.println("Successfully updated quantity to " + newQuantity + " for Product ID " + productId + " in Buyer ID " + buyerId + "'s cart.");
+                return true;
+            } else {
+                System.out.println("Failed to update. Product ID " + productId + " was not found in this buyer's cart.");
+                return false;
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error updating product quantity for buyer: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }

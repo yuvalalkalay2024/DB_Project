@@ -255,6 +255,117 @@ public class DB_Project extends GenericFunctions{
             }
         }
     }
+/////////////////////////////////////////////////////////////////////////////////////////////
+    static void deleteSeller(){
+        System.out.println("Enter the ID of the seller you want to delete:");
+        int idToDelete = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ
+        
+        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (למשל data)
+        data.deleteSellerById(idToDelete);
+    }
+                
+    static void deleteBuyer(){
+        System.out.println("Enter the ID of the buyer you want to delete:");
+        int idToDelete = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ
+        
+        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (למשל data)
+        data.deleteBuyerById(idToDelete);
+    }
+                
+    static void deleteProductToSeller(){
+        System.out.println("Enter your Seller ID:");
+        int sellerId = s.nextInt();
+        
+        System.out.println("Enter the ID of the product you want to delete:");
+        int productId = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ (Buffer) אחרי קליטת מספר
+        
+        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
+        data.deleteProductBySeller(productId, sellerId);
+    }
+                
+    static void deleteProductToBuyer(){
+        System.out.println("Enter your Buyer ID:");
+        int buyerId = s.nextInt();
+        
+        System.out.println("Enter the ID of the product you want to delete:");
+        int productId = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ (Buffer) אחרי קליטת מספר
+        
+        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
+        data.deleteProductBySeller(productId, buyerId);
+    }
+                
+    static void updateSeller(){
+        System.out.println("Enter the ID of the seller you want to update:");
+        int sellerId = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
+        
+        System.out.println("Enter the new username:");
+        String newUsername = s.nextLine();
+        
+        System.out.println("Enter the new password:");
+        String newPassword = s.nextLine();
+        
+        // קריאה לפונקציה (בהנחה שלמופע של המחלקה קוראים data)
+        data.updateSeller(sellerId, newUsername, newPassword);
+    }
+                
+    static void updateBuyer(){
+            System.out.println("Enter the ID of the buyer you want to update:");
+        int buyerId = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
+        
+        System.out.println("Enter the new username:");
+        String newUsername = s.nextLine();
+        
+        System.out.println("Enter the new password:");
+        String newPassword = s.nextLine();
+        
+        // קריאה לפונקציה (בהנחה שלמופע של המחלקה קוראים data)
+        data.updateSeller(buyerId, newUsername, newPassword);
+    }
+                
+    static void updateProductToSeller(){
+        System.out.println("Enter your Seller ID:");
+        int sellerId = s.nextInt();
+        
+        System.out.println("Enter the ID of the product you want to update:");
+        int productId = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
+        
+        System.out.println("Enter the new product name:");
+        String newName = s.nextLine();
+        
+        System.out.println("Enter the new price:");
+        double newPrice = s.nextDouble();
+        s.nextLine(); // ניקוי החוצץ
+        
+        System.out.println("Enter the new category (Children, Electricity, Office, Clothing):");
+        String newCategory = s.nextLine();
+        
+        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
+        data.updateProductBySeller(productId, sellerId, newName, newPrice, newCategory);
+    }
+            
+    static void updateProductToBuyer(){
+        System.out.println("Enter Buyer ID:");
+        int buyerId = s.nextInt();
+        
+        System.out.println("Enter the ID of the product in the cart you want to update:");
+        int productId = s.nextInt();
+        
+        System.out.println("Enter the new quantity:");
+        int newQuantity = s.nextInt();
+        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
+        
+        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
+        data.updateProductbyBuyer(buyerId, productId, newQuantity);
+    }
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 
     // Function to handle user menu selection and perform corresponding operations
     static void operation(int selection) {
@@ -275,19 +386,43 @@ public class DB_Project extends GenericFunctions{
             case 4: // Add product to buyer
                 addProductToBuyer();
                 break;
-            case 5: // Process payment for buyer
-                payment();
+            case 5:
+                deleteSeller();
                 break;
-            case 6: // Show all buyers' information
-                showBuyersData();
+            case 6:
+                deleteBuyer();
                 break;
-            case 7: // Show all sellers' information
-                showSellersData();
+            case 7:
+                deleteProductToSeller();
                 break;
             case 8:
-                printAllProductByType();
+                deleteProductToBuyer();
                 break;
             case 9:
+                updateSeller();
+                break;
+            case 10:
+                updateBuyer();
+                break;
+            case 11:
+                updateProductToSeller();
+                break;
+            case 12:
+                updateProductToBuyer();
+                break;
+            case 13: // Process payment for buyer
+                payment();
+                break;
+            case 14: // Show all buyers' information
+                showBuyersData();
+                break;
+            case 15: // Show all sellers' information
+                showSellersData();
+                break;
+            case 16:
+                printAllProductByType();
+                break;
+            case 17:
                 changeCart();
                 break;
         }
@@ -301,16 +436,24 @@ public class DB_Project extends GenericFunctions{
         while (isMainRunning) {
             try {
                 // Display menu options
-                System.out.println("0 : Exit");
-                System.out.println("1 : Add seller");
-                System.out.println("2 : Add buyer");
-                System.out.println("3 : Add product to seller");
-                System.out.println("4 : Add product to buyer");
-                System.out.println("5 : Payment for buyer");
-                System.out.println("6 : Show all buyer's information");
-                System.out.println("7 : Show all seller's information");
-                System.out.println("8 : Show all products by type");
-                System.out.println("9 : Switch current cart with cart from history");
+                System.out.println("0  : Exit");
+                System.out.println("1  : Add seller");
+                System.out.println("2  : Add buyer");
+                System.out.println("3  : Add product to seller");
+                System.out.println("4  : Add product to buyer");
+                System.out.println("5  : delete seller");
+                System.out.println("6  : delete buyer");
+                System.out.println("7  : delete product to seller");
+                System.out.println("8  : delete product to buyer");
+                System.out.println("9  : update seller");
+                System.out.println("10 : update buyer");
+                System.out.println("11 : update product to seller");
+                System.out.println("12 : update product to buyer");
+                System.out.println("13 : Payment for buyer");
+                System.out.println("14 : Show all buyer's information");
+                System.out.println("15 : Show all seller's information");
+                System.out.println("16 : Show all products by type");
+                System.out.println("17 : Switch current cart with cart from history");
                 System.out.print("Please enter a number of selection from the menu: ");
 
                 // Get user's menu selection
@@ -330,3 +473,4 @@ public class DB_Project extends GenericFunctions{
         }
     }
 }
+
