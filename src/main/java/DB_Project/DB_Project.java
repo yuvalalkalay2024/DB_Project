@@ -206,20 +206,21 @@ public class DB_Project extends GenericFunctions{
     }
 
     static void printAllProductByType() {
-        int count =0;
+        
         int index = ExceptionCheckDomain("1) Children\n2) Electricity\n3) Office\n4) Clothing\n" +
-                "enter the number of the category: ",4, 1);// checks if input for the selected product type is valid
-        Product.Category[] categories = Product.Category.values();
-        for (int i = 0; i < data.getLogicSizeSellers(); i++) {
-            for (int j = 0; j < data.getSellers()[i].getLogicSizeProduct(); j++) {
-                if (data.getSellers()[i].getProducts()[j].getCategory() == categories[index - 1]) {
-                    System.out.println(data.getSellers()[i].getProducts()[j].toString());
-                    count++;
-                }
-            }
-        }
-        if(count==0){
+                "enter the number of the category: ", 4, 1); // checks if input for the selected product type is valid
+
+        // שליפת המוצרים ישירות ממסד הנתונים בעזרת הפונקציה שכתבנו
+        Product[] products = data.getProductByCategorie(index);
+        
+        // בדיקה אם המערך ריק (במקום להשתמש במשתנה count)
+        if (products.length == 0) {
             System.out.println("there aren't any products from the type you chose");
+        } else {
+            // מעבר על המערך בעזרת .length והדפסת כל מוצר
+            for (int i = 0; i < products.length; i++) {
+                System.out.println(products[i].toString());
+            }
         }
     }
 
@@ -458,7 +459,7 @@ public class DB_Project extends GenericFunctions{
 
                 // Get user's menu selection
                 int select = s.nextInt();
-                if(select>=0 && select<=9){
+                if(select>=0 && select<=17){
                     operation(select);// Perform operation based on user's selection
                 }
                 else{

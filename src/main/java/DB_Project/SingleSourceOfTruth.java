@@ -424,4 +424,64 @@ public class SingleSourceOfTruth {
         }
     }
 
+public Product[] getProductByCategorie(int category) {
+        String categoryStr = "";
+        
+        switch (category) {
+            case 1:
+                categoryStr = "Children";
+                break;
+            case 2:
+                categoryStr = "Electricity";
+                break;
+            case 3:
+                categoryStr = "Office";
+                break;
+            case 4:
+                categoryStr = "Clothing";
+                break;
+            default:
+                System.out.println("Invalid category selected.");
+                return new Product[0];
+        }
+        
+        // השאילתה - שים לב לשימוש ב-?
+        String sql = "SELECT * FROM products WHERE category = ?::product_category";
+        
+        List<Product> productsList = new ArrayList<>();
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            // מציבים את הקטגוריה בשאילתה
+            stmt.setString(1, categoryStr);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // 1. חילוץ הנתונים מהעמודות בטבלה
+                    String name = rs.getString("name");
+                    float price = rs.getFloat("price");
+                    
+                    // 2. המרת הקטגוריה (String) מה-DB ל-Enum של המחלקה
+                    Product.Category catEnum = Product.Category.valueOf(rs.getString("category"));
+                    
+                    // הערה: אני מניח שאין עמודת "isSpecialProd" בטבלת products הרגילה, אז נעביר false בינתיים.
+                    // אם יש עמודה כזו, אפשר לשנות ל: boolean isSpecial = rs.getBoolean("is_special");
+                    boolean isSpecial = false; 
+                    
+                    // 3. יצירת האובייקט בעזרת הבנאי שלך והוספתו לרשימה
+                    Product p = new Product(name, price, catEnum, isSpecial);
+                    productsList.add(p);
+                }
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error fetching products by category: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        // החזרת המערך (אם אין תוצאות, יוחזר מערך באורך 0)
+        return productsList.toArray(new Product[0]);
+    }
+
 }
