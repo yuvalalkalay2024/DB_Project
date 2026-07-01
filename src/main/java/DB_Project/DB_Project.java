@@ -6,7 +6,7 @@ package DB_Project;
 
 /**
  *
- * @author yuval
+ * @author yuval, adi, may
  */
 
 import java.util.Arrays;
@@ -507,7 +507,8 @@ public class DB_Project extends GenericFunctions{
     }
 
     // name: Yuval Alkalay  id: 207962770
-// name: Almog Dinur    id: 211627054
+    // name: Adi Simhony    id: 206350654
+    // name: May Shehory      id: 208293902
     // save. function to display the menu and take user input for operations
     public static void main(String[] args) {
         Scanner s = new Scanner(System.in);
