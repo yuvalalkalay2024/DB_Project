@@ -365,6 +365,47 @@ public class DB_Project extends GenericFunctions{
         // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
         data.updateProductQuantityForBuyer(buyerId, productId, newQuantity);
     }
+
+    // Wrapper functions for the meaningful query reports (call through to the data object)
+    static void reportDiverseBuyers() {
+        data.reportDiverseBuyers();
+    }
+
+    static void reportLazyBuyers() {
+        data.reportLazyBuyers();
+    }
+
+    static void reportTopSeller() {
+        data.reportTopSeller();
+    }
+
+    static void reportMostDiverseSeller() {
+        data.reportMostDiverseSeller();
+    }
+
+    static void reportDormantSellers() {
+        data.reportDormantSellers();
+    }
+
+    static void reportBestSellingProducts() {
+        data.reportBestSellingProducts();
+    }
+
+    static void reportSalesPerSeller() {
+        data.reportSalesPerSeller();
+    }
+
+    static void reportAbandonedProducts() {
+        data.reportAbandonedProducts();
+    }
+
+    static void reportRevenueByCategory() {
+        data.reportRevenueByCategory();
+    }
+
+    static void reportWhaleOrders() {
+        data.reportWhaleOrders();
+    }
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -429,6 +470,39 @@ public class DB_Project extends GenericFunctions{
             case 18:
                 DatabaseTester.runAllMenuOptions(data);
                 break;
+            case 19:
+                reportDiverseBuyers();
+                break;
+            case 20:
+                reportLazyBuyers();
+                break;
+            case 21:
+                reportTopSeller();
+                break;
+            case 22:
+                reportMostDiverseSeller();
+                break;
+            case 23:
+                reportDormantSellers();
+                break;
+            case 24:
+                reportBestSellingProducts();
+                break;
+            case 25:
+                reportSalesPerSeller();
+                break;
+            case 26:
+                reportAbandonedProducts();
+                break;
+            case 27:
+                reportRevenueByCategory();
+                break;
+            case 28:
+                reportWhaleOrders();
+                break;
+            default:
+                System.out.println("Invalid selection. Please try again.");
+                break;
         }
     }
 
@@ -458,15 +532,27 @@ public class DB_Project extends GenericFunctions{
                 System.out.println("15 : Show all seller's information");
                 System.out.println("16 : Show all products by type");
                 System.out.println("17 : Switch current cart with cart from history");
+                System.out.println("18 : Test ");
+                System.out.println("19 : Report buyers who bought from diverse categories");
+                System.out.println("20 : Report lazy buyers (low/no purchase activity)");
+                System.out.println("21 : Report the top seller by revenue");
+                System.out.println("22 : Report the seller with the most diverse products");
+                System.out.println("23 : Report dormant sellers (no recent sales)");
+                System.out.println("24 : Report best-selling products");
+                System.out.println("25 : Report sales per seller");
+                System.out.println("26 : Report abandoned products (in carts, never bought)");
+                System.out.println("27 : Report revenue by category");
+                System.out.println("28 : Report whale orders (largest purchases)");
+                
                 System.out.print("Please enter a number of selection from the menu: ");
 
                 // Get user's menu selection
                 int select = s.nextInt();
-                if(select>=0 && select<=18){
+                if(select>=0 && select<=28){
                     operation(select);// Perform operation based on user's selection
                 }
                 else{
-                    throw new Exception("Invalid input. the number must be between 0 to 9.");
+                    throw new Exception("Invalid input. the number must be between 0 to 28.");
                 }
             }catch (InputMismatchException e) {
                 System.out.println("Invalid input. Please enter a number.");

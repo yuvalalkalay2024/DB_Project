@@ -30,7 +30,8 @@ CREATE TABLE Products (
     name VARCHAR(255) NOT NULL,
     price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
     category product_category NOT NULL,
-    is_special_prod BOOLEAN DEFAULT FALSE
+    is_special_prod BOOLEAN DEFAULT FALSE,
+    stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0)
 );
 
 -- 5. Create Special Products Table (Subclass of Product)
@@ -51,5 +52,6 @@ CREATE TABLE Orders (
 CREATE TABLE Order_Products (
     order_id INT NOT NULL REFERENCES Orders(order_id) ON DELETE CASCADE,
     product_id INT NOT NULL REFERENCES Products(product_id) ON DELETE CASCADE,
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
     PRIMARY KEY (order_id, product_id)
 );
