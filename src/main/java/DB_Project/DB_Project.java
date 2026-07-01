@@ -363,7 +363,7 @@ public class DB_Project extends GenericFunctions{
         s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
         
         // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
-        data.updateProductbyBuyer(buyerId, productId, newQuantity);
+        data.updateProductQuantityForBuyer(buyerId, productId, newQuantity);
     }
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -426,6 +426,9 @@ public class DB_Project extends GenericFunctions{
             case 17:
                 changeCart();
                 break;
+            case 18:
+                DatabaseTester.runAllMenuOptions(data);
+                break;
         }
     }
 
@@ -459,7 +462,7 @@ public class DB_Project extends GenericFunctions{
 
                 // Get user's menu selection
                 int select = s.nextInt();
-                if(select>=0 && select<=17){
+                if(select>=0 && select<=18){
                     operation(select);// Perform operation based on user's selection
                 }
                 else{
