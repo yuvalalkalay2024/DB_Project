@@ -18,12 +18,12 @@ public class SingleSourceOfTruth {
     // 1. הוספת משתמשים (קונים ומוכרים)
     // ==========================================
 
-    public void addBuyer(Buyer buyer) {
+public int addBuyer(Buyer buyer) {
         String insertUserSql = "INSERT INTO Users (username, password, role) VALUES (?, ?, 'BUYER') RETURNING user_id";
         String insertAddressSql = "INSERT INTO Addresses (user_id, country, city, street, house_number) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            conn.setAutoCommit(false); // פותחים טרנזקציה (כדי לוודא שהמשתמש והכתובת נשמרים יחד)
+            conn.setAutoCommit(false); 
 
             try (PreparedStatement userStmt = conn.prepareStatement(insertUserSql)) {
                 userStmt.setString(1, buyer.getName());
@@ -31,9 +31,8 @@ public class SingleSourceOfTruth {
                 
                 ResultSet rs = userStmt.executeQuery();
                 if (rs.next()) {
-                    int newUserId = rs.getInt("user_id");
+                    int newUserId = rs.getInt("user_id"); // שומרים את ה-ID החדש שנוצר
                     
-                    // שמירת הכתובת של הקונה בטבלת Addresses
                     try (PreparedStatement addressStmt = conn.prepareStatement(insertAddressSql)) {
                         Address addr = buyer.getAddress();
                         addressStmt.setInt(1, newUserId);
@@ -43,40 +42,47 @@ public class SingleSourceOfTruth {
                         addressStmt.setInt(5, addr.getHouseNumber());
                         addressStmt.executeUpdate();
                     }
+                    conn.commit(); 
+                    System.out.println("Buyer added to database successfully! ID: " + newUserId);
+                    return newUserId; // מחזירים את ה-ID למי שקרא לפונקציה!
                 }
-                conn.commit(); // מאשרים את שמירת הנתונים
-                System.out.println("Buyer added to database successfully!");
             } catch (SQLException e) {
-                conn.rollback(); // במקרה של שגיאה - מבטלים את שתי הפעולות
+                conn.rollback(); 
                 e.printStackTrace();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return -1; // במקרה של כישלון
     }
 
-    public void addSeller(Seller seller) {
-        String insertUserSql = "INSERT INTO Users (username, password, role) VALUES (?, ?, 'SELLER')";
+public int addSeller(Seller seller) {
+        String insertUserSql = "INSERT INTO Users (username, password, role) VALUES (?, ?, 'SELLER') RETURNING user_id";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(insertUserSql)) {
             
             stmt.setString(1, seller.getName());
             stmt.setString(2, seller.getPassWord());
-            stmt.executeUpdate();
             
-            System.out.println("Seller added to database successfully!");
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                int newUserId = rs.getInt("user_id");
+                System.out.println("Seller added to database successfully! ID: " + newUserId);
+                return newUserId; // מחזירים את ה-ID למי שקרא לפונקציה!
+            }
         } catch (SQLException e) {
             System.out.println("Error adding seller: " + e.getMessage());
         }
+        return -1; // במקרה של כישלון
     }
 
     // ==========================================
     // 2. הוספת מוצרים (לקטלוג או לעגלה)
     // ==========================================
 
-    public boolean addProductToSeller(int sellerId, Product p) {
-        String sql = "INSERT INTO Products (seller_id, name, price, category, is_special_prod) VALUES (?, ?, ?, ?::product_category, ?)";
+public int addProductToSeller(int sellerId, Product p) {
+        String sql = "INSERT INTO Products (seller_id, name, price, category, is_special_prod) VALUES (?, ?, ?, ?::product_category, ?) RETURNING product_id";
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, sellerId);
@@ -84,11 +90,15 @@ public class SingleSourceOfTruth {
             stmt.setDouble(3, p.getPrice());
             stmt.setString(4, p.getCategory().name());
             stmt.setBoolean(5, p.getisSpecialProd());
-            return stmt.executeUpdate() > 0;
+            
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("product_id"); // מחזירים את ה-ID החדש שנוצר!
+            }
         } catch (SQLException e) {
             System.err.println("Error adding product to seller: " + e.getMessage());
-            return false;
         }
+        return -1; // במקרה של כישלון
     }
 
     public boolean addProductToBuyerCart(int buyerId, int productId, int quantity) {

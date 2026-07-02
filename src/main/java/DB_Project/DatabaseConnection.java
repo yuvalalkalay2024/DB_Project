@@ -10,7 +10,7 @@ public class DatabaseConnection {
     // הגדרת פרטי החיבור ל-PostgreSQL ב-Ubuntu שלך
     private static final String URL = "jdbc:postgresql://localhost:5432/DB_Project";
     private static final String USER = "postgres";
-    private static final String PASSWORD = "may123"; // החלף בסיסמה שלך
+    private static final String PASSWORD = "yuval123"; // החלף בסיסמה שלך
 
     /**
      * מתודה להשגת חיבור פעיל למסד הנתונים.

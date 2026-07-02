@@ -6,6 +6,7 @@ CREATE TYPE user_role AS ENUM ('BUYER', 'SELLER');
 CREATE TYPE product_category AS ENUM ('Children', 'Electricity', 'Office', 'Clothing');
 
 -- 2. Create Users Table (Combines Buyer and Seller logic)
+
 CREATE TABLE Users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
