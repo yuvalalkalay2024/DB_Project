@@ -471,38 +471,89 @@ public class DB_Project extends GenericFunctions{
                 DatabaseTester.runAllMenuOptions(data);
                 break;
             case 19:
+                reportsMenu();
+                break;
+            default:
+                System.out.println("Invalid selection. Please try again.");
+                break;
+        }
+    }
+
+    // Function to handle the reports submenu selection and perform corresponding operations
+    static void reportsOperation(int selection) {
+        switch (selection) {
+            case 0: // Return to main menu
+                break;
+            case 1:
                 reportDiverseBuyers();
                 break;
-            case 20:
+            case 2:
                 reportLazyBuyers();
                 break;
-            case 21:
+            case 3:
                 reportTopSeller();
                 break;
-            case 22:
+            case 4:
                 reportMostDiverseSeller();
                 break;
-            case 23:
+            case 5:
                 reportDormantSellers();
                 break;
-            case 24:
+            case 6:
                 reportBestSellingProducts();
                 break;
-            case 25:
+            case 7:
                 reportSalesPerSeller();
                 break;
-            case 26:
+            case 8:
                 reportAbandonedProducts();
                 break;
-            case 27:
+            case 9:
                 reportRevenueByCategory();
                 break;
-            case 28:
+            case 10:
                 reportWhaleOrders();
                 break;
             default:
                 System.out.println("Invalid selection. Please try again.");
                 break;
+        }
+    }
+
+    // Function to display the reports submenu and take user input until the user chooses to go back
+    static void reportsMenu() {
+        boolean isReportsRunning = true;
+        while (isReportsRunning) {
+            try {
+                System.out.println("0  : Back to main menu");
+                System.out.println("1  : Report buyers who bought from diverse categories");
+                System.out.println("2  : Report lazy buyers (low/no purchase activity)");
+                System.out.println("3  : Report the top seller by revenue");
+                System.out.println("4  : Report the seller with the most diverse products");
+                System.out.println("5  : Report dormant sellers (no recent sales)");
+                System.out.println("6  : Report best-selling products");
+                System.out.println("7  : Report sales per seller");
+                System.out.println("8  : Report abandoned products (in carts, never bought)");
+                System.out.println("9  : Report revenue by category");
+                System.out.println("10 : Report whale orders (largest purchases)");
+
+                System.out.print("Please enter a number of selection from the reports menu: ");
+
+                int select = s.nextInt();
+                if (select >= 0 && select <= 10) {
+                    reportsOperation(select);
+                    if (select == 0) {
+                        isReportsRunning = false;
+                    }
+                } else {
+                    throw new Exception("Invalid input. the number must be between 0 to 10.");
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a number.");
+                s.nextLine();
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
         }
     }
 
@@ -534,26 +585,17 @@ public class DB_Project extends GenericFunctions{
                 System.out.println("16 : Show all products by type");
                 System.out.println("17 : Switch current cart with cart from history");
                 System.out.println("18 : Test ");
-                System.out.println("19 : Report buyers who bought from diverse categories");
-                System.out.println("20 : Report lazy buyers (low/no purchase activity)");
-                System.out.println("21 : Report the top seller by revenue");
-                System.out.println("22 : Report the seller with the most diverse products");
-                System.out.println("23 : Report dormant sellers (no recent sales)");
-                System.out.println("24 : Report best-selling products");
-                System.out.println("25 : Report sales per seller");
-                System.out.println("26 : Report abandoned products (in carts, never bought)");
-                System.out.println("27 : Report revenue by category");
-                System.out.println("28 : Report whale orders (largest purchases)");
-                
+                System.out.println("19 : Reports menu");
+
                 System.out.print("Please enter a number of selection from the menu: ");
 
                 // Get user's menu selection
                 int select = s.nextInt();
-                if(select>=0 && select<=28){
+                if(select>=0 && select<=19){
                     operation(select);// Perform operation based on user's selection
                 }
                 else{
-                    throw new Exception("Invalid input. the number must be between 0 to 28.");
+                    throw new Exception("Invalid input. the number must be between 0 to 19.");
                 }
             }catch (InputMismatchException e) {
                 System.out.println("Invalid input. Please enter a number.");
