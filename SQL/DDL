@@ -6,7 +6,6 @@ CREATE TYPE user_role AS ENUM ('BUYER', 'SELLER');
 CREATE TYPE product_category AS ENUM ('Children', 'Electricity', 'Office', 'Clothing');
 
 -- 2. Create Users Table (Combines Buyer and Seller logic)
-
 CREATE TABLE Users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(100) NOT NULL UNIQUE,
@@ -32,7 +31,7 @@ CREATE TABLE Products (
     price NUMERIC(10, 2) NOT NULL CHECK (price >= 0),
     category product_category NOT NULL,
     is_special_prod BOOLEAN DEFAULT FALSE,
-    stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0)
+    stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0) 
 );
 
 -- 5. Create Special Products Table (Subclass of Product)
@@ -55,4 +54,5 @@ CREATE TABLE Order_Products (
     product_id INT NOT NULL REFERENCES Products(product_id) ON DELETE CASCADE,
     quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
     PRIMARY KEY (order_id, product_id)
+
 );
