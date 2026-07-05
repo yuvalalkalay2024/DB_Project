@@ -190,7 +190,7 @@ public int addProductToSeller(int sellerId, Product p) {
         return buyersList.toArray(new Buyer[0]);
     }
 
-    private Product[] getCartOfBuyer(int buyerID) {
+    public Product[] getCartOfBuyer(int buyerID) {
         List<Product> cart = new ArrayList<>();
         String sql = "SELECT p.product_id, p.name, p.price, p.category, p.is_special_prod, sp.extra_pay " +
                      "FROM Cart_Products cp " +
@@ -867,6 +867,28 @@ public Seller[] getSellers() {
             }
         } catch (SQLException e) {
             System.err.println("Error fetching payment history: " + e.getMessage());
+        }
+    }
+
+    public void removeProductFromCart(int buyerId, int productId) {
+        // מוחק רק את השורה שבה הקונה הספציפי מקושר למוצר הספציפי בעגלה
+        String sql = "DELETE FROM Cart_Products WHERE buyer_id = ? AND product_id = ?";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, buyerId);
+            stmt.setInt(2, productId);
+            
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Product successfully removed from the cart.");
+            } else {
+                System.out.println("Could not find this product in the cart.");
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error removing product from cart: " + e.getMessage());
         }
     }
 

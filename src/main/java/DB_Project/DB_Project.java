@@ -271,113 +271,368 @@ static void showBuyersData() {
         }
     }
 /////////////////////////////////////////////////////////////////////////////////////////////
-    static void deleteSeller(){
-        System.out.println("Enter the ID of the seller you want to delete:");
-        int idToDelete = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ
+    static void deleteSeller() {
+        // 1. שליפת כל המוכרים ממסד הנתונים (הפונקציה שלך כבר דואגת להביא אותם)
+        Seller[] sellers = data.getSellers();
+        int numOfSellers = sellers.length;
+
+        // בדיקה מקדימה שבאמת יש מוכרים במערכת
+        if (numOfSellers == 0) {
+            System.out.println("There are no sellers to delete.");
+            return; // יציאה מהפונקציה כי אין מה למחוק
+        }
+
+        // 2. הדפסת הרשימה למשתמש עם מספור (1, 2, 3...)
+        System.out.println("Select a seller to delete:");
+        for (int i = 0; i < numOfSellers; i++) {
+            // הוספתי גם את הדפסת ה-ID בסוגריים שיהיה לך נוח לראות שהמיפוי עובד
+            System.out.println((i + 1) + ") " + sellers[i].getName() + " (DB ID: " + sellers[i].getUserId() + ")");
+        }
+
+        // 3. קליטת הבחירה של המשתמש בעזרת פונקציית העזר הבטוחה שלך
+        int sellerNumber = ExceptionCheckDomain("Enter the seller's number: ", numOfSellers, 1);
         
-        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (למשל data)
+        // 4. חילוץ המוכר הספציפי וה-ID האמיתי שלו במסד הנתונים
+        Seller selectedSeller = sellers[sellerNumber - 1];
+        int idToDelete = selectedSeller.getUserId();
+        
+        // 5. שליחת ה-ID לפונקציית המחיקה ב-DB
         data.deleteSellerById(idToDelete);
+        
+        System.out.println("Seller '" + selectedSeller.getName() + "' was successfully deleted.");
     }
                 
-    static void deleteBuyer(){
-        System.out.println("Enter the ID of the buyer you want to delete:");
-        int idToDelete = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ
+    static void deleteBuyer() {
+        // 1. שליפת כל הקונים ממסד הנתונים
+        Buyer[] buyers = data.getBuyers();
+        int numOfBuyers = buyers.length;
+
+        // בדיקה מקדימה שבאמת יש קונים במערכת
+        if (numOfBuyers == 0) {
+            System.out.println("There are no buyers to delete.");
+            return; // יציאה מהפונקציה
+        }
+
+        // 2. הדפסת הרשימה למשתמש עם מספור ידידותי (1, 2, 3...)
+        System.out.println("Select a buyer to delete:");
+        for (int i = 0; i < numOfBuyers; i++) {
+            System.out.println((i + 1) + ") " + buyers[i].getName() + " (DB ID: " + buyers[i].getUserId() + ")");
+        }
+
+        // 3. קליטת הבחירה של המשתמש בעזרת פונקציית הקלט הבטוחה
+        int buyerNumber = ExceptionCheckDomain("Enter the buyer's number: ", numOfBuyers, 1);
         
-        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (למשל data)
+        // 4. חילוץ הקונה הספציפי וה-ID האמיתי שלו במסד הנתונים
+        Buyer selectedBuyer = buyers[buyerNumber - 1];
+        int idToDelete = selectedBuyer.getUserId();
+        
+        // 5. שליחת ה-ID לפונקציית המחיקה ב-DB
         data.deleteBuyerById(idToDelete);
+        
+        System.out.println("Buyer '" + selectedBuyer.getName() + "' was successfully deleted.");
     }
-                
-    static void deleteProductToSeller(){
-        System.out.println("Enter your Seller ID:");
-        int sellerId = s.nextInt();
+    
+    static void deleteProductToSeller() {
+        // 1. שליפת כל המוכרים ממסד הנתונים
+        Seller[] sellers = data.getSellers();
+        int numOfSellers = sellers.length;
+
+        // בדיקה מקדימה שיש מוכרים במערכת
+        if (numOfSellers == 0) {
+            System.out.println("There are no sellers in the system.");
+            return;
+        }
+
+        // 2. הצגת רשימת המוכרים למשתמש
+        System.out.println("Select a seller to view their products:");
+        for (int i = 0; i < numOfSellers; i++) {
+            System.out.println((i + 1) + ") " + sellers[i].getName());
+        }
+
+        // קליטת בחירת המוכר בצורה בטוחה
+        int sellerNumber = ExceptionCheckDomain("Enter the seller's number: ", numOfSellers, 1);
+        Seller selectedSeller = sellers[sellerNumber - 1];
+
+        // 3. שליפת כמות המוצרים של המוכר הספציפי הזה
+        int numOfProducts = selectedSeller.getLogicSizeProduct();
         
-        System.out.println("Enter the ID of the product you want to delete:");
-        int productId = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ (Buffer) אחרי קליטת מספר
+        // בדיקה אם למוכר הזה יש בכלל מוצרים למחוק
+        if (numOfProducts == 0) {
+            System.out.println("Seller '" + selectedSeller.getName() + "' has no products to delete.");
+            return;
+        }
+
+        // 4. הצגת רשימת המוצרים של אותו מוכר ספציפי
+        System.out.println("Select a product to delete from '" + selectedSeller.getName() + "':");
+        for (int i = 0; i < numOfProducts; i++) {
+            Product p = selectedSeller.getProducts()[i];
+            System.out.println((i + 1) + ") " + p.getName() + " (" + p.getPrice() + "$) [DB ID: " + p.getID() + "]");
+        }
+
+        // קליטת בחירת המוצר בצורה בטוחה
+        int productNumber = ExceptionCheckDomain("Enter the product's number: ", numOfProducts, 1);
+        Product selectedProduct = selectedSeller.getProducts()[productNumber - 1];
         
-        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
-        data.deleteProductBySeller(productId, sellerId);
+        // חילוץ ה-ID האמיתי של המוצר ממסד הנתונים
+        int idToDelete = selectedProduct.getID();
+        int sellerID = selectedSeller.getUserId();
+        // 5. ביצוע המחיקה במסד הנתונים
+        data.deleteProductBySeller(idToDelete, sellerID); // ודא שזה שם המתודה אצלך ב-SingleSourceOfTruth
+        
+        System.out.println("Product '" + selectedProduct.getName() + "' was successfully deleted from seller '" + selectedSeller.getName() + "'.");
     }
-                
-    static void deleteProductToBuyer(){
-        System.out.println("Enter your Buyer ID:");
-        int buyerId = s.nextInt();
+      
+    static void deleteProductToBuyer() {
+        // 1. שליפת כל הקונים ממסד הנתונים
+        Buyer[] buyers = data.getBuyers();
+        int numOfBuyers = buyers.length;
+
+        // בדיקה שיש קונים במערכת
+        if (numOfBuyers == 0) {
+            System.out.println("There are no buyers in the system.");
+            return;
+        }
+
+        // 2. הצגת רשימת הקונים למשתמש
+        System.out.println("Select a buyer to view their cart:");
+        for (int i = 0; i < numOfBuyers; i++) {
+            System.out.println((i + 1) + ") " + buyers[i].getName());
+        }
+
+        // קליטת בחירת הקונה בצורה בטוחה
+        int buyerNumber = ExceptionCheckDomain("Enter the buyer's number: ", numOfBuyers, 1);
+        Buyer selectedBuyer = buyers[buyerNumber - 1];
+        int buyerId = selectedBuyer.getUserId();
+
+        // 3. שליפת העגלה המעודכנת ישירות ממסד הנתונים!
+        // (שים לב: נשתמש בפונקציה שכתבנו קודם שמחזירה מערך של מוצרים)
+        Product[] cart = data.getCartOfBuyer(buyerId);
+        int cartSize = cart.length;
         
-        System.out.println("Enter the ID of the product you want to delete:");
-        int productId = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ (Buffer) אחרי קליטת מספר
+        // בדיקה אם העגלה ריקה
+        if (cartSize == 0) {
+            System.out.println("Buyer '" + selectedBuyer.getName() + "' has an empty cart.");
+            return;
+        }
+
+        // 4. הצגת המוצרים שנמצאים בתוך עגלת הקניות
+        System.out.println("Select a product to remove from '" + selectedBuyer.getName() + "'s cart:");
+        for (int i = 0; i < cartSize; i++) {
+            Product p = cart[i];
+            System.out.println((i + 1) + ") " + p.getName() + " (" + p.getPrice() + "$) [DB ID: " + p.getID() + "]");
+        }
+
+        // קליטת בחירת המוצר בצורה בטוחה
+        int productNumber = ExceptionCheckDomain("Enter the product's number: ", cartSize, 1);
+        Product selectedProduct = cart[productNumber - 1];
         
-        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
-        data.deleteProductBySeller(productId, buyerId);
+        // חילוץ ה-ID האמיתי ממסד הנתונים
+        int productId = selectedProduct.getID();
+
+        // 5. ביצוע המחיקה במסד הנתונים 
+        data.removeProductFromCart(buyerId, productId); 
+        
+        System.out.println("Product '" + selectedProduct.getName() + "' was successfully removed from " + selectedBuyer.getName() + "'s cart.");
     }
-                
-    static void updateSeller(){
-        System.out.println("Enter the ID of the seller you want to update:");
-        int sellerId = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
+ 
+    static void updateSeller() {
+        // 1. שליפת כל המוכרים ממסד הנתונים
+        Seller[] sellers = data.getSellers();
+        int numOfSellers = sellers.length;
+
+        // בדיקה שיש מוכרים במערכת לפני שמתחילים
+        if (numOfSellers == 0) {
+            System.out.println("There are no sellers to update.");
+            return;
+        }
+
+        // 2. הצגת רשימת המוכרים למשתמש עם מספור (1, 2, 3...)
+        System.out.println("Select a seller to update:");
+        for (int i = 0; i < numOfSellers; i++) {
+            System.out.println((i + 1) + ") " + sellers[i].getName() + " (DB ID: " + sellers[i].getUserId() + ")");
+        }
+
+        // 3. קליטת הבחירה של המשתמש בעזרת הפונקציה הבטוחה שלך
+        int sellerNumber = ExceptionCheckDomain("Enter the seller's number: ", numOfSellers, 1);
         
-        System.out.println("Enter the new username:");
+        // חילוץ המוכר הספציפי וה-ID האמיתי שלו ממסד הנתונים
+        Seller selectedSeller = sellers[sellerNumber - 1];
+        int sellerId = selectedSeller.getUserId();
+
+        // 4. קליטת הנתונים החדשים מהמשתמש
+        // מנקים את החוצץ במידה ו-ExceptionCheckDomain לא עשתה זאת
+        // s.nextLine(); // הסר את ההערה משורה זו רק אם אתה חווה דילוג על קליטת השם
+
+        System.out.println("Enter the new username (currently '" + selectedSeller.getName() + "'):");
         String newUsername = s.nextLine();
         
         System.out.println("Enter the new password:");
         String newPassword = s.nextLine();
         
-        // קריאה לפונקציה (בהנחה שלמופע של המחלקה קוראים data)
+        // 5. שליחת הנתונים לעדכון במסד הנתונים
         data.updateSeller(sellerId, newUsername, newPassword);
-    }
-                
-    static void updateBuyer(){
-            System.out.println("Enter the ID of the buyer you want to update:");
-        int buyerId = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
         
-        System.out.println("Enter the new username:");
+        System.out.println("Seller '" + selectedSeller.getName() + "' was successfully updated to '" + newUsername + "'.");
+    }    
+
+    static void updateBuyer() {
+        // 1. שליפת כל הקונים ממסד הנתונים
+        Buyer[] buyers = data.getBuyers();
+        int numOfBuyers = buyers.length;
+
+        // בדיקה שיש קונים במערכת לפני שמתחילים
+        if (numOfBuyers == 0) {
+            System.out.println("There are no buyers to update.");
+            return;
+        }
+
+        // 2. הצגת רשימת הקונים למשתמש עם מספור (1, 2, 3...)
+        System.out.println("Select a buyer to update:");
+        for (int i = 0; i < numOfBuyers; i++) {
+            System.out.println((i + 1) + ") " + buyers[i].getName() + " (DB ID: " + buyers[i].getUserId() + ")");
+        }
+
+        // 3. קליטת הבחירה של המשתמש בעזרת הפונקציה הבטוחה שלך
+        int buyerNumber = ExceptionCheckDomain("Enter the buyer's number: ", numOfBuyers, 1);
+        
+        // חילוץ הקונה הספציפי וה-ID האמיתי שלו ממסד הנתונים
+        Buyer selectedBuyer = buyers[buyerNumber - 1];
+        int buyerId = selectedBuyer.getUserId();
+
+        // 4. קליטת הנתונים החדשים מהמשתמש
+        // מנקים את החוצץ במידה ו-ExceptionCheckDomain לא עשתה זאת
+        // s.nextLine(); // הסר את ההערה משורה זו רק אם המערכת מדלגת על קליטת השם
+
+        System.out.println("Enter the new username (currently '" + selectedBuyer.getName() + "'):");
         String newUsername = s.nextLine();
         
         System.out.println("Enter the new password:");
         String newPassword = s.nextLine();
         
-        // קריאה לפונקציה (בהנחה שלמופע של המחלקה קוראים data)
-        data.updateSeller(buyerId, newUsername, newPassword);
+        // 5. שליחת הנתונים לעדכון במסד הנתונים (תוקן ל-updateBuyer!)
+        data.updateBuyer(buyerId, newUsername, newPassword); 
+        
+        System.out.println("Buyer '" + selectedBuyer.getName() + "' was successfully updated to '" + newUsername + "'.");
     }
-                
-    static void updateProductToSeller(){
-        System.out.println("Enter your Seller ID:");
-        int sellerId = s.nextInt();
+
+    static void updateProductToSeller() {
+        // 1. שליפת כל המוכרים ממסד הנתונים
+        Seller[] sellers = data.getSellers();
+        int numOfSellers = sellers.length;
+
+        if (numOfSellers == 0) {
+            System.out.println("There are no sellers in the system.");
+            return;
+        }
+
+        // 2. בחירת המוכר שממנו נרצה לעדכן מוצר
+        System.out.println("Select a seller to view their products:");
+        for (int i = 0; i < numOfSellers; i++) {
+            System.out.println((i + 1) + ") " + sellers[i].getName());
+        }
+
+        int sellerNumber = ExceptionCheckDomain("Enter the seller's number: ", numOfSellers, 1);
+        Seller selectedSeller = sellers[sellerNumber - 1];
+        int sellerId = selectedSeller.getUserId();
+
+        // 3. שליפת רשימת המוצרים של המוכר הספציפי
+        int numOfProducts = selectedSeller.getLogicSizeProduct();
         
-        System.out.println("Enter the ID of the product you want to update:");
-        int productId = s.nextInt();
-        s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
-        
-        System.out.println("Enter the new product name:");
+        if (numOfProducts == 0) {
+            System.out.println("Seller '" + selectedSeller.getName() + "' has no products to update.");
+            return;
+        }
+
+        System.out.println("Select a product to update from '" + selectedSeller.getName() + "':");
+        for (int i = 0; i < numOfProducts; i++) {
+            Product p = selectedSeller.getProducts()[i];
+            System.out.println((i + 1) + ") " + p.getName() + " (" + p.getPrice() + "$) [DB ID: " + p.getID() + "]");
+        }
+
+        // 4. בחירת המוצר הספציפי לעדכון
+        int productNumber = ExceptionCheckDomain("Enter the product's number: ", numOfProducts, 1);
+        Product selectedProduct = selectedSeller.getProducts()[productNumber - 1];
+        int productId = selectedProduct.getID();
+
+        // 5. קליטת הנתונים החדשים תוך תצוגת הנתונים הקיימים
+        System.out.println("Enter the new product name (currently '" + selectedProduct.getName() + "'):");
         String newName = s.nextLine();
         
-        System.out.println("Enter the new price:");
-        double newPrice = s.nextDouble();
-        s.nextLine(); // ניקוי החוצץ
+        // שימוש בפונקציה הבטוחה שלך לקליטת מחיר חיובי
+        float newPrice = ExceptionCheckPositive("Enter the new price (currently " + selectedProduct.getPrice() + "$): ");
         
-        System.out.println("Enter the new category (Children, Electricity, Office, Clothing):");
-        String newCategory = s.nextLine();
+        // בחירת קטגוריה בטוחה דרך תפריט במקום הקלדה ידנית
+        int catIndex = ExceptionCheckDomain(
+                "Select the new category (currently '" + selectedProduct.getCategory() + "'):\n" +
+                "1) Children\n2) Electricity\n3) Office\n4) Clothing\n" +
+                "Enter the number of the category: ", 4, 1);
         
-        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
-        data.updateProductBySeller(productId, sellerId, newName, newPrice, newCategory);
+        // המרת הבחירה למחרוזת שמתאימה ל-ENUM במסד הנתונים
+        Product.Category[] categories = Product.Category.values();
+        String newCategory = categories[catIndex - 1].name();
+
+        // 6. קריאה לפונקציית העדכון במסד הנתונים
+        // (הערה: העברתי את newPrice כ-double בעזרת המרה מרומזת, למקרה שהפונקציה שלך דורשת double)
+        data.updateProductBySeller(productId, sellerId, newName, (double) newPrice, newCategory);
+        
+        System.out.println("Product '" + newName + "' was successfully updated.");
     }
             
-    static void updateProductToBuyer(){
-        System.out.println("Enter Buyer ID:");
-        int buyerId = s.nextInt();
+    static void updateProductToBuyer() {
+        // 1. שליפת כל הקונים ממסד הנתונים
+        Buyer[] buyers = data.getBuyers();
+        int numOfBuyers = buyers.length;
+
+        // בדיקה שיש קונים במערכת לפני שמתחילים
+        if (numOfBuyers == 0) {
+            System.out.println("There are no buyers in the system.");
+            return;
+        }
+
+        // 2. הצגת רשימת הקונים למשתמש
+        System.out.println("Select a buyer to update their cart:");
+        for (int i = 0; i < numOfBuyers; i++) {
+            System.out.println((i + 1) + ") " + buyers[i].getName());
+        }
+
+        // קליטת בחירת הקונה בצורה בטוחה
+        int buyerNumber = ExceptionCheckDomain("Enter the buyer's number: ", numOfBuyers, 1);
+        Buyer selectedBuyer = buyers[buyerNumber - 1];
+        int buyerId = selectedBuyer.getUserId();
+
+        // 3. שליפת העגלה המעודכנת ישירות ממסד הנתונים (בדיוק כמו שעשינו במחיקה)
+        Product[] cart = data.getCartOfBuyer(buyerId);
+        int cartSize = cart.length;
         
-        System.out.println("Enter the ID of the product in the cart you want to update:");
-        int productId = s.nextInt();
-        
-        System.out.println("Enter the new quantity:");
+        // בדיקה אם העגלה ריקה
+        if (cartSize == 0) {
+            System.out.println("Buyer '" + selectedBuyer.getName() + "' has an empty cart. Nothing to update.");
+            return;
+        }
+
+        // 4. הצגת המוצרים שנמצאים כרגע בעגלת הקניות
+        System.out.println("Select a product to update in '" + selectedBuyer.getName() + "'s cart:");
+        for (int i = 0; i < cartSize; i++) {
+            Product p = cart[i];
+            System.out.println((i + 1) + ") " + p.getName() + " [DB ID: " + p.getID() + "]");
+        }
+
+        // קליטת בחירת המוצר בצורה בטוחה
+        int productNumber = ExceptionCheckDomain("Enter the product's number: ", cartSize, 1);
+        Product selectedProduct = cart[productNumber - 1];
+        int productId = selectedProduct.getID();
+
+        // 5. קליטת הכמות החדשה מהמשתמש
+        System.out.println("Enter the new quantity for '" + selectedProduct.getName() + "':");
         int newQuantity = s.nextInt();
         s.nextLine(); // ניקוי החוצץ (Buffer) לאחר קליטת מספר
         
-        // קריאה לפונקציה מתוך אובייקט הנתונים שלך (לדוגמה data)
+        // (אופציונלי: אפשר להוסיף כאן בדיקה שאם newQuantity הוא 0, קוראים לפונקציית המחיקה מהעגלה במקום לעדכן)
+
+        // 6. קריאה לפונקציית העדכון במסד הנתונים
         data.updateProductQuantityForBuyer(buyerId, productId, newQuantity);
+        
+        System.out.println("The quantity for '" + selectedProduct.getName() + "' was successfully updated to " + newQuantity + ".");
     }
 
     // Wrapper functions for the meaningful query reports (call through to the data object)
