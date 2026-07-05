@@ -3,7 +3,6 @@
  */
 
 package DB_Project;
-
 /**
  *
  * @author yuval, adi, may
@@ -85,6 +84,7 @@ public class DB_Project extends GenericFunctions{
             System.out.println(i + ") " + data.getSellers()[i - 1].getName());
         }
         int sellerNumber = ExceptionCheckDomain("enter the seller's number: ",data.getLogicSizeSellers(), 1); // checks if input for the selected seller is valid
+        Seller selectedSeller = data.getSellers()[sellerNumber - 1];
         System.out.print("Enter product name: ");
         String product = s.nextLine();
         float price = ExceptionCheckPositive("Enter product price: ");// checks if input for the product price valid
@@ -96,9 +96,11 @@ public class DB_Project extends GenericFunctions{
             float extraPay = ExceptionCheckPositive("what is your price for the special packaging? ");// checks if input for the price of the special packaging is valid
             SpecialPackProd newProduct = new SpecialPackProd(product, price, categories[index - 1],false, extraPay);
             data.getSellers()[sellerNumber - 1].addProduct(newProduct);
+            data.addProductToSeller(selectedSeller.getUserId(), newProduct);
         } else {
             Product newProduct = new Product(product, price, categories[index - 1], false);
             data.getSellers()[sellerNumber - 1].addProduct(newProduct);
+            data.addProductToSeller(selectedSeller.getUserId(), newProduct);
         }
     }
 
@@ -106,16 +108,23 @@ public class DB_Project extends GenericFunctions{
     static void addProductToBuyer() {
         int counter = 0;
         Seller[] temp = new Seller[0];
-        for (int i = 1; i <= data.getLogicSizeBuyers(); i++) {
+        Seller[] sellers = new Seller[0];
+        Buyer[] buyers = new Buyer[0];
+        int LogicSizeSellers = data.getLogicSizeSellers();
+        int LogicSizeBuyers = data.getLogicSizeBuyers();
+        sellers = Arrays.copyOf(data.getSellers(), LogicSizeSellers);
+        buyers = Arrays.copyOf(data.getBuyers(), LogicSizeBuyers);
+
+        for (int i = 1; i <= LogicSizeBuyers; i++) {
             System.out.println(i + ") " + data.getBuyers()[i - 1].getName());
         }
         int buyerNumber = ExceptionCheckDomain("Enter buyer number: ",data.getLogicSizeBuyers(),1);// checks if input for the selected buyer is valid
         for (int i = 1; i <= data.getLogicSizeSellers(); i++) {//prints only the sellers that have products to sell
-            if (data.getSellers()[i - 1].getLogicSizeProduct() != 0) {
+            if (sellers[i - 1].getLogicSizeProduct() != 0) {
                 counter++;
-                System.out.println(counter + ") " + data.getSellers()[i - 1].getName());
+                System.out.println(counter + ") " + sellers[i - 1].getName());
                 temp = Arrays.copyOf(temp, counter);
-                temp[counter - 1] = data.getSellers()[i - 1];
+                temp[counter - 1] = sellers[i - 1];
             }
         }
         if (counter == 0) {
@@ -141,11 +150,12 @@ public class DB_Project extends GenericFunctions{
                             "' is: "+FinalPay+"$");
                     p.setSpecialProd(true);
                 }
-                data.getBuyers()[buyerNumber - 1].addProduct(p);
+                // buyers[buyerNumber - 1]
+                data.addProductToBuyerCart(buyers[buyerNumber - 1].getUserId(), temp[sellerNumber - 1].getProducts()[productNumber - 1].getID(), 1);
             }
             else{
-                Product p = data.getSellers()[sellerNumber - 1].getProducts()[productNumber - 1];
-                data.getBuyers()[buyerNumber - 1].addProduct(p);
+                // Product p = sellers[sellerNumber - 1].getProducts()[productNumber - 1];
+                data.addProductToBuyerCart(buyers[buyerNumber - 1].getUserId(), temp[sellerNumber - 1].getProducts()[productNumber - 1].getID(), 1);
             }
 
         }
@@ -178,12 +188,16 @@ public class DB_Project extends GenericFunctions{
     }
 
     // Function to display all buyers' data
-    static void showBuyersData() {
+static void showBuyersData() {
         if (data.getLogicSizeBuyers() > 0) { // Check if there are any buyers
             Buyer[] temp = Arrays.copyOfRange(data.getBuyers(), 0, data.getLogicSizeBuyers());
             Arrays.sort(temp);
             for (Buyer buyer : temp) {
-                System.out.println("\n"+buyer.toString()); // Print each Buyer's info
+                System.out.println("\n" + buyer.toString()); // Print each Buyer's info
+                
+                // התוספת שלנו - הדפסת העגלה החיה ישירות ממסד הנתונים!
+                data.printBuyerCart(buyer.getUserId()); 
+                data.printBuyerPaymentHistory(buyer.getUserId());
             }
             System.out.println();
         } else {

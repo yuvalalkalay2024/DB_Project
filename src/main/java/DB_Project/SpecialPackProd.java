@@ -9,7 +9,13 @@ public class SpecialPackProd extends Product {
         super(name, price, category, isSpecialProd);
         this.extraPay = extraPay;
     }
-
+// בנאי חדש שכולל את ה-ID (מותאם לשליפה ממסד הנתונים)
+    public SpecialPackProd(int id, String name, float price, Category category, boolean isSpecialProd, float extraPay) {
+        // קוראים לבנאי של Product שכבר יצרת קודם (שמקבל את הקטגוריה כ-String)
+        super(id, name, price, category.name(), isSpecialProd); 
+        this.extraPay = extraPay;
+    }
+    
     public float getExtraPay() {
         return extraPay;
     }

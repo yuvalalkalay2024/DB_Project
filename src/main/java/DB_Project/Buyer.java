@@ -14,6 +14,12 @@ public class Buyer extends Username implements Comparable<Buyer>{
         this.address = address;
     }
 
+    // בנאי שמתאים לשליפה ממסד הנתונים
+    public Buyer(int user_id, String name, String passWord, Address address) {
+        super(user_id, name, passWord);
+        this.address = address;
+    }
+
     public Address getAddress() {
         return address;
     }
@@ -65,12 +71,10 @@ public class Buyer extends Username implements Comparable<Buyer>{
     }
 
     @Override
-    public String toString(){
+    public String toString() {
         return  "Buyer name='" + getName() + '\'' + "\n" +
                 "passWord='" + getPassWord() + '\'' + "\n" +
-                "address='" + address +
-                "Cart=" + Arrays.toString(Arrays.copyOfRange(getProducts(), 0, getLogicSizeProduct())) + "\n" +
-                "PaymentHistory=" + Arrays.toString(Arrays.copyOfRange(PaymentHistory, 0, logicSizePaymentHistory));
+                "address=" + address + "\n";
     }
 
     @Override

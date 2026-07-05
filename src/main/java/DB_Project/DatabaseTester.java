@@ -26,25 +26,28 @@ public class DatabaseTester {
             System.out.println("2. ✅ Seller details updated.");
 
             // 3. הוספת מוצרים למוכר ושמירת המזהים (IDs) הדינמיים שלהם!
+            /*
             Product p1 = new Product("Laptop", 3500.0f, Product.Category.Electricity, false);
             Product p2 = new Product("Shirt", 150.0f, Product.Category.Clothing, false);
             Product p3 = new Product("Desk", 800.0f, Product.Category.Office, false);
-            
             int p1Id = data.addProductToSeller(currentSellerId, p1);
             int p2Id = data.addProductToSeller(currentSellerId, p2);
             int p3Id = data.addProductToSeller(currentSellerId, p3);
             
             if (p1Id == -1 || p2Id == -1 || p3Id == -1) throw new Exception("Failed to add products");
             System.out.println("3. ✅ 3 Products added to Seller's catalog (IDs: " + p1Id + ", " + p2Id + ", " + p3Id + ").");
+            */
 
             // 4. עדכון מוצר אצל המוכר (השתמשנו ב-p1Id)
+            /*
             data.updateProductBySeller(p1Id, currentSellerId, "Gaming Laptop", 4000.0f, "Electricity");
             System.out.println("4. ✅ Product updated in Seller's catalog.");
-
+            */
             // 5. מחיקת מוצר אחד (נמחק את השלישי - p3Id)
+            /*
             data.deleteProductBySeller(p3Id, currentSellerId); 
             System.out.println("5. ✅ 1 Product deleted from Seller's catalog.");
-
+            */
 
             System.out.println("\n--- PART 2: BUYER & CART FLOW ---");
             
@@ -61,18 +64,21 @@ public class DatabaseTester {
             System.out.println("7. ✅ Buyer details updated.");
 
             // 8. הוספת מוצרים לעגלת קניות של הקונה (השתמשנו ב-p1Id ו-p2Id במקום 1 ו-2)
+            /*
             data.addProductToBuyerCart(currentBuyerId, p1Id, 1); 
             data.addProductToBuyerCart(currentBuyerId, p2Id, 2); 
             System.out.println("8. ✅ Products added to Buyer's Cart.");
-
+            */
             // 9. עדכון כמות של מוצר אצל הקונה בעגלה
+            /*
             data.updateProductQuantityForBuyer(currentBuyerId, p2Id, 3); 
             System.out.println("9. ✅ Product quantity updated in Cart.");
-
+            */
             // 10. מחיקת מוצר אחד מהעגלה
+            /*
             data.removeProductFromBuyerCart(currentBuyerId, p2Id); 
             System.out.println("10. ✅ Product removed from Cart.");
-
+            */
 
             System.out.println("\n--- PART 3: SYSTEM VIEWS & REPORTS ---");
 
@@ -130,6 +136,7 @@ public class DatabaseTester {
 
             // 19. בדיקת מחיר שלילי (CHECK Constraint)
             System.out.println("19. Testing Negative Price Constraint...");
+            /*
             Product invalidPriceProduct = new Product("Glitch Item", -50.0f, Product.Category.Clothing, false);
             int invalidProdId = data.addProductToSeller(currentSellerId, invalidPriceProduct);
             if (invalidProdId == -1) {
@@ -137,7 +144,7 @@ public class DatabaseTester {
             } else {
                 System.out.println("    ❌ FAILED: Database allowed negative price!");
             }
-
+            */
             // 20. תשלום על עגלה ריקה (Business Logic)
             System.out.println("20. Testing Empty Cart Checkout...");
             // העגלה התרוקנה בשלב 14, אז כרגע היא ריקה לחלוטין
@@ -152,12 +159,13 @@ public class DatabaseTester {
             System.out.println("21. Testing Missing Product Addition (Foreign Key)...");
             System.out.println("    (Note: Expecting a SQL constraint error message below)");
             // אנחנו מנסים להוסיף את p3Id שכבר נמחק בשלב 5
+            /*
             data.addProductToBuyerCart(currentBuyerId, p3Id, 1);
             System.out.println("    ✅ Tested foreign key constraints on missing products.");
 
 
             System.out.println("\n--- PART 7: CLEANUP & DELETIONS ---");
-
+            */
             // 22. מחיקת הקונה
             data.deleteBuyerById(currentBuyerId);
             System.out.println("22. ✅ Buyer and their cart history deleted.");

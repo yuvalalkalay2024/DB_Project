@@ -6,7 +6,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SingleSourceOfTruth {
 
@@ -170,7 +172,7 @@ public int addProductToSeller(int sellerId, Product p) {
 
     public Buyer[] getBuyers() {
         List<Buyer> buyersList = new ArrayList<>();
-        String sql = "SELECT u.username, u.password, a.country, a.city, a.street, a.house_number " +
+        String sql = "SELECT u.user_id, u.username, u.password, a.country, a.city, a.street, a.house_number " +
                      "FROM Users u LEFT JOIN Addresses a ON u.user_id = a.user_id WHERE u.role = 'BUYER'";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -179,7 +181,7 @@ public int addProductToSeller(int sellerId, Product p) {
             while (rs.next()) {
                 Address addr = new Address(rs.getString("country"), rs.getString("city"), 
                                            rs.getString("street"), rs.getInt("house_number"));
-                Buyer b = new Buyer(rs.getString("username"), rs.getString("password"), addr);
+                Buyer b = new Buyer(rs.getInt("user_id"), rs.getString("username"), rs.getString("password"), addr);
                 buyersList.add(b);
             }
         } catch (SQLException e) {
@@ -188,21 +190,110 @@ public int addProductToSeller(int sellerId, Product p) {
         return buyersList.toArray(new Buyer[0]);
     }
 
-    public Seller[] getSellers() {
-        List<Seller> sellersList = new ArrayList<>();
-        String sql = "SELECT username, password FROM Users WHERE role = 'SELLER'";
+    private Product[] getCartOfBuyer(int buyerID) {
+        List<Product> cart = new ArrayList<>();
+        String sql = "SELECT p.product_id, p.name, p.price, p.category, p.is_special_prod, sp.extra_pay " +
+                     "FROM Cart_Products cp " +
+                     "JOIN Products p ON cp.product_id = p.product_id " +
+                     "LEFT JOIN Special_Products sp ON p.product_id = sp.product_id " +
+                     "WHERE cp.buyer_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                Seller s = new Seller(rs.getString("username"), rs.getString("password"));
-                sellersList.add(s);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, buyerID);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    // 1. המרה תקנית של ה-String מה-DB ל-Enum של Java
+                    Product.Category cat = Product.Category.valueOf(rs.getString("category"));
+                    boolean isSpecial = rs.getBoolean("is_special_prod");
+                    Product p;
+
+                    if (isSpecial) {
+                        // שימוש בבנאי התקני + תוספת תשלום
+                        p = new SpecialPackProd(
+                                rs.getInt("product_id"), 
+                                rs.getString("name"), 
+                                rs.getFloat("price"), 
+                                cat, // מעבירים את ה-Enum, לא String!
+                                true, 
+                                rs.getFloat("extra_pay")
+                        );
+                    } else {
+                        // שימוש בבנאי התקני של Product
+                        p = new Product(
+                                rs.getInt("product_id"), 
+                                rs.getString("name"), 
+                                rs.getFloat("price"), 
+                                cat, // מעבירים את ה-Enum, לא String!
+                                false
+                        );
+                    }
+                    
+                    // 2. הוספה לרשימה המקומית (במקום למשתנה b שלא קיים)
+                    cart.add(p);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return sellersList.toArray(new Seller[0]);
+        
+        // 3. החזרה נכונה של מערך מוצרים (ולא קונים)
+        return cart.toArray(new Product[0]);
+    }
+
+public Seller[] getSellers() {
+        // נשתמש במפה כדי לקבץ את כל השורות של אותו מוכר לאובייקט אחד
+        Map<Integer, Seller> sellerMap = new LinkedHashMap<>();
+        
+        // השאילתה מביאה עכשיו גם את נתוני המוכר וגם את נתוני המוצרים
+        String sql = "SELECT u.user_id, u.username, u.password, " +
+                     "p.product_id, p.name AS product_name, p.price, p.category, p.is_special_prod " +
+                     "FROM Users u " +
+                     "LEFT JOIN Products p ON u.user_id = p.seller_id " +
+                     "WHERE u.role = 'SELLER' " +
+                     "ORDER BY u.user_id";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+             
+            while (rs.next()) {
+                int userId = rs.getInt("user_id");
+                
+                // 1. אם המוכר הזה עוד לא קיים במפה, ניצור אותו ונוסיף
+                sellerMap.putIfAbsent(userId, new Seller(userId, rs.getString("username"), rs.getString("password")));
+                
+                // 2. נשלוף את המוכר הנוכחי מהמפה
+                Seller currentSeller = sellerMap.get(userId);
+                
+                // 3. נבדוק אם יש מוצר בשורה הזו (בגלל LEFT JOIN, למוכר חדש עשוי להיות NULL)
+                if (rs.getString("product_name") != null) {
+                    
+                    // המרה של המחרוזת מה-DB ל-Enum של הקטגוריה
+                    Product.Category category = Product.Category.valueOf(rs.getString("category")); 
+                    
+                    // יצירת אובייקט המוצר
+                    // הערה: אם הוספת בנאי שמקבל גם את ה-ID של המוצר (product_id), מומלץ להכניס אותו פה!
+                    Product p = new Product(
+                            rs.getInt("product_id"),
+                            rs.getString("product_name"), 
+                            rs.getFloat("price"), 
+                            category, 
+                            rs.getBoolean("is_special_prod")
+                    );
+                    
+                    // הוספת המוצר למערך של המוכר (הפונקציה שלך כבר מגדילה את המערך ואת ה-logicSize לבד!)
+                    currentSeller.addProduct(p);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // הופכים את הערכים (המוכרים) שאספנו במפה בחזרה למערך רגיל
+        return sellerMap.values().toArray(new Seller[0]);
     }
 
     public Product[] getProductByCategorie(int category) {
@@ -697,6 +788,85 @@ public int addProductToSeller(int sellerId, Product p) {
             if (!found) System.out.println("No orders above average found.");
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    public void printBuyerCart(int buyerId) {
+        String sql = "SELECT p.name, p.price, cp.quantity " +
+                     "FROM Cart_Products cp " +
+                     "JOIN Products p ON cp.product_id = p.product_id " +
+                     "WHERE cp.buyer_id = ?";
+                     
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, buyerId); // הכנסת ה-ID של הקונה לשאילתה
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                boolean hasItems = false;
+                while (rs.next()) {
+                    if (!hasItems) {
+                        System.out.println("  🛒 Cart Items:");
+                        hasItems = true;
+                    }
+                    String name = rs.getString("name");
+                    float price = rs.getFloat("price");
+                    int quantity = rs.getInt("quantity");
+                    System.out.println("    - " + quantity + "x " + name + " (" + price + "$ each)");
+                }
+                if (!hasItems) {
+                    System.out.println("  🛒 Cart is empty.");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching cart: " + e.getMessage());
+        }
+    }
+
+    public void printBuyerPaymentHistory(int buyerId) {
+        // שאילתה שמביאה את היסטוריית ההזמנות ששולמו, ממוינת מהזמנה חדשה לישנה
+        String sql = "SELECT o.order_id, o.order_time, p.name, p.price, op.quantity " +
+                     "FROM Orders o " +
+                     "JOIN Order_Products op ON o.order_id = op.order_id " +
+                     "JOIN Products p ON op.product_id = p.product_id " +
+                     "WHERE o.buyer_id = ? " +
+                     "ORDER BY o.order_time DESC, o.order_id";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, buyerId); // הכנסת ה-ID של הקונה לשאילתה
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                boolean hasHistory = false;
+                int currentOrderId = -1; // משתנה עזר כדי להדפיס כותרת לכל הזמנה נפרדת
+
+                while (rs.next()) {
+                    if (!hasHistory) {
+                        System.out.println("  📦 Payment History (Completed Orders):");
+                        hasHistory = true;
+                    }
+
+                    int orderId = rs.getInt("order_id");
+                    
+                    // אם זה מספר הזמנה חדש שעוד לא הדפסנו, נדפיס לו כותרת עם תאריך
+                    if (orderId != currentOrderId) {
+                        System.out.println("    Order #" + orderId + " | Date: " + rs.getTimestamp("order_time"));
+                        currentOrderId = orderId;
+                    }
+
+                    String name = rs.getString("name");
+                    float price = rs.getFloat("price");
+                    int quantity = rs.getInt("quantity");
+                    System.out.println("      - " + quantity + "x " + name + " (" + price + "$ each)");
+                }
+                
+                if (!hasHistory) {
+                    System.out.println("  📦 Payment History is empty (No purchases yet).");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching payment history: " + e.getMessage());
         }
     }
 

@@ -9,7 +9,7 @@ public class Product implements Comparable<Product>, Cloneable {
     }
     private float price;
     private String name;
-    private static int ID = 0;
+    private int ID = 0;
     private Category category;
     private boolean isSpecialProd = false;
 
@@ -21,6 +21,35 @@ public class Product implements Comparable<Product>, Cloneable {
         this.category = category;
         this.isSpecialProd = isSpecialProd;
         this.ID++;
+    }
+
+    public Product(int id, String name, float price, Category category, boolean isSpecialProd) {
+        this.price = price;
+        this.name = name;
+        this.category = category;
+        this.isSpecialProd = isSpecialProd;
+        this.ID = id;
+    }
+
+    public Product(int id, String name, float price, String category, boolean isSpecialProd) {
+        this.price = price;
+        this.name = name;
+        switch(category){
+            case("Children"):
+                this.category = Category.Children;
+                break;
+            case("Electricity"):
+                this.category = Category.Electricity;
+                break;
+            case("Office"):
+                this.category = Category.Office;
+                break;
+            case("Clothing"):
+                this.category = Category.Clothing;
+                break;
+        }
+        this.isSpecialProd = isSpecialProd;
+        this.ID = id;
     }
 
     public Product(Product other) {
