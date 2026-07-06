@@ -711,6 +711,7 @@ public Seller[] getSellers() {
     }
 
     // 8. עגלות נטושות לעומת קניות (במקום סטוק נמוך - דורש HAVING ו-COALESCE)
+/*
     public void reportAbandonedProducts() {
         System.out.println("\n--- Abandoned Products (More in active carts than sold) ---");
         String sql = "SELECT p.name, COALESCE(SUM(cp.quantity), 0) as in_carts, COALESCE(SUM(op.quantity), 0) as sold " +
@@ -729,6 +730,47 @@ public Seller[] getSellers() {
                 found = true;
             }
             if (!found) System.out.println("No abandoned products found. People are buying what they add!");
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+*/
+
+public void reportAbandonedProducts() {
+        System.out.println("\n--- Abandoned Products (More in active carts than sold) ---");
+        
+        // שימוש ב-CTE כדי למנוע הכפלת נתונים (Cartesian Product)
+        String sql = "WITH CartTotals AS (" +
+                     "    SELECT product_id, SUM(quantity) as total_in_carts " +
+                     "    FROM Cart_Products " +
+                     "    GROUP BY product_id" +
+                     "), " +
+                     "OrderTotals AS (" +
+                     "    SELECT product_id, SUM(quantity) as total_sold " +
+                     "    FROM Order_Products " +
+                     "    GROUP BY product_id" +
+                     ") " +
+                     "SELECT p.name, " +
+                     "       COALESCE(ct.total_in_carts, 0) as in_carts, " +
+                     "       COALESCE(ot.total_sold, 0) as sold " +
+                     "FROM Products p " +
+                     "LEFT JOIN CartTotals ct ON p.product_id = ct.product_id " +
+                     "LEFT JOIN OrderTotals ot ON p.product_id = ot.product_id " +
+                     "WHERE COALESCE(ct.total_in_carts, 0) > COALESCE(ot.total_sold, 0)";
+                     
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+             
+            boolean found = false;
+            while (rs.next()) {
+                System.out.println("🛒 " + rs.getString("name") + 
+                                   " | In Carts: " + rs.getInt("in_carts") + 
+                                   " | Actually Sold: " + rs.getInt("sold"));
+                found = true;
+            }
+            if (!found) System.out.println("No abandoned products found. People are buying what they add!");
+            
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());
         }
