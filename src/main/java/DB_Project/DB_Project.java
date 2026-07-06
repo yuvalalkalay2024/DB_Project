@@ -161,26 +161,50 @@ public class DB_Project extends GenericFunctions{
         }
     }
 
-    // Function to process payment for a buyer (implementation incomplete)
     static void payment() {
-        String answer;
-        float sum = 0;
-        for (int i = 1; i <= data.getLogicSizeBuyers(); i++) {
-            System.out.println(i + ") " + data.getBuyers()[i - 1].getName());
+        // 1. שליפת כל הקונים והצגתם למשתמש
+        Buyer[] buyers = data.getBuyers();
+        int logicSizeBuyers = buyers.length;
+
+        if (logicSizeBuyers == 0) {
+            System.out.println("There are no buyers in the system.");
+            return;
         }
-        int buyerNumber = ExceptionCheckDomain("Enter buyer number for payment: ",data.getLogicSizeBuyers(),1 );// checks if input for the selected buyer is valid
-        try{
-            if(data.getBuyers()[buyerNumber-1].getLogicSizeProduct()!=0) {
-                System.out.println("buyer name: " + data.getBuyers()[buyerNumber - 1].getName());
-                sum = data.getSum()+data.getBuyers()[buyerNumber - 1].paymentPrice();
-                System.out.println("your total payment is: " + sum + "$");
-                Product[] cart = data.getBuyers()[buyerNumber - 1].getProducts();
-                data.getBuyers()[buyerNumber - 1].addPaymentHistory(cart);
-                Product[] newCart = new Product[0];
-                data.getBuyers()[buyerNumber - 1].setProducts(Arrays.copyOf(newCart, 0));
-                data.getBuyers()[buyerNumber - 1].setLogicSizeProduct(0);
-            }else{
-                throw new Exception("Your cart is EMPTY! please go add products and than come back to pay");
+
+        System.out.println("Select a buyer for checkout:");
+        for (int i = 0; i < logicSizeBuyers; i++) {
+            System.out.println((i + 1) + ") " + buyers[i].getName());
+        }
+
+        // קליטת בחירת הקונה
+        int buyerNumber = ExceptionCheckDomain("Enter buyer number for payment: ", logicSizeBuyers, 1);
+        Buyer selectedBuyer = buyers[buyerNumber - 1];
+        int buyerId = selectedBuyer.getUserId();
+
+        try {
+            // 2. שליפת העגלה המעודכנת ישירות מה-DB!
+            Product[] cart = data.getCartOfBuyer(buyerId);
+
+            if (cart.length > 0) {
+                System.out.println("Buyer name: " + selectedBuyer.getName());
+                
+                // 3. חישוב סך הכל לתשלום מתוך המוצרים שנשלפו
+                float sum = 0;
+                for (Product p : cart) {
+                    sum += p.getPrice(); 
+                    // אם יש לך גם עמודת כמות בעגלה (Quantity), תצטרך להכפיל את המחיר בכמות כאן
+                }
+                
+                // (הסרתי את הקריאה ל-data.getSum() אלא אם זה משתנה גלובלי שאתה חייב להוסיף)
+                System.out.println("Your total payment is: " + sum + "$");
+
+                // 4. העברת השרביט למסד הנתונים לביצוע התשלום!
+                data.processPayment(buyerId);
+                
+                System.out.println("Payment successful! The cart has been emptied and moved to your order history.");
+
+            } else {
+                throw new Exception("Your cart is EMPTY! Please go add products and then come back to pay.");
             }
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -239,36 +263,53 @@ static void showBuyersData() {
     }
 
     static void changeCart() {
-        int input = ExceptionCheckDomain("would you like to delete your current cart and " +
+        int input = ExceptionCheckDomain("Would you like to delete your current cart and " +
                 "replace it with the one you have in history?\n" +
-                "Enter 1 to continue, enter 0 to exit: ", 1,0); // checks if user wants to switch his cart
+                "Enter 1 to continue, enter 0 to exit: ", 1, 0);
 
-        if (input == 1) {
-            for (int i = 1; i <= data.getLogicSizeBuyers(); i++) {
-                System.out.println(i + ")" + data.getBuyers()[i - 1].getName());
-            }
-            int index = ExceptionCheckDomain("Pick your username's number: ", data.getLogicSizeBuyers(), 1);// checks if input for the selected buyer is valid
-            if(data.getBuyers()[index - 1].getLogicSizePaymentHistory()!=0) {
-                for (int j = 1; j <= data.getBuyers()[index - 1].
-                        getLogicSizePaymentHistory(); j++) {
-                    System.out.println(j + ")" + data.getBuyers()[index - 1].
-                            getPaymentHistory()[j - 1].toString());
-                }
-                input = ExceptionCheckDomain("Pick the number of the cart you want to restore: ",
-                        data.getBuyers()[index - 1].getLogicSizePaymentHistory(), 1);// checks if input for the selected cart from history is valid
-                boolean stop = true;
-                int count = 0;
-                Product[] newCart = new Product[data.getBuyers()[index - 1].getPaymentHistory()[input - 1].getProducts().length];
-                for (int i = 0; i < newCart.length && data.getBuyers()[index - 1].getPaymentHistory()[input - 1].getProducts()[i] != null; i++) {
-                    newCart[i] = data.getBuyers()[index - 1].getPaymentHistory()[input - 1].getProducts()[i].clone();
-                    count++;
-                }
-                data.getBuyers()[index - 1].setProducts(newCart);
-                data.getBuyers()[index - 1].setLogicSizeProduct(count);
-            }else{
-                System.out.println("there haven't been any purchases in the Payment History yet");
-            }
+        if (input == 0) {
+            return; // המשתמש בחר לצאת
         }
+
+        // 1. שליפת כל הקונים ממסד הנתונים
+        Buyer[] buyers = data.getBuyers();
+        int numOfBuyers = buyers.length;
+
+        if (numOfBuyers == 0) {
+            System.out.println("There are no buyers in the system.");
+            return;
+        }
+
+        // 2. בחירת הקונה
+        System.out.println("Select a buyer:");
+        for (int i = 0; i < numOfBuyers; i++) {
+            System.out.println((i + 1) + ") " + buyers[i].getName());
+        }
+        int buyerNumber = ExceptionCheckDomain("Pick your username's number: ", numOfBuyers, 1);
+        int buyerId = buyers[buyerNumber - 1].getUserId();
+
+        // 3. שליפת היסטוריית ההזמנות של הקונה
+        int[] orderIds = data.getBuyerOrderIds(buyerId);
+        
+        if (orderIds.length == 0) {
+            System.out.println("There haven't been any purchases in the Payment History yet.");
+            return;
+        }
+
+        // 4. בחירת ההזמנה לשחזור
+        System.out.println("Select the order you want to restore to your cart:");
+        for (int i = 0; i < orderIds.length; i++) {
+            System.out.println((i + 1) + ") Restore Order #" + orderIds[i]);
+            // (הערה: אם תרצה, אפשר לקרוא כאן ל-data.printBuyerPaymentHistory שכתבנו בעבר כדי להראות לו מה יש בתוך כל הזמנה)
+        }
+        
+        int orderChoice = ExceptionCheckDomain("Pick the number of the order: ", orderIds.length, 1);
+        int selectedOrderId = orderIds[orderChoice - 1];
+
+        // 5. הפעלת הקסם במסד הנתונים!
+        data.replaceCartWithHistory(buyerId, selectedOrderId);
+        
+        System.out.println("Success! Your cart has been replaced with the contents of Order #" + selectedOrderId + ".");
     }
 /////////////////////////////////////////////////////////////////////////////////////////////
     static void deleteSeller() {

@@ -892,4 +892,51 @@ public Seller[] getSellers() {
         }
     }
 
+// פונקציה 1: מביאה את כל מספרי ההזמנות (הקבלות) של קונה מסוים
+    public int[] getBuyerOrderIds(int buyerId) {
+        List<Integer> orderIds = new ArrayList<>();
+        String sql = "SELECT order_id FROM Orders WHERE buyer_id = ? ORDER BY order_time DESC";
+        
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, buyerId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    orderIds.add(rs.getInt("order_id"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching order IDs: " + e.getMessage());
+        }
+        
+        // המרה מ-List למערך int פשוט
+        return orderIds.stream().mapToInt(i -> i).toArray();
+    }
+
+    // פונקציה 2: מוחקת את העגלה הנוכחית ומעתיקה את המוצרים מההזמנה הישנה
+    public void replaceCartWithHistory(int buyerId, int orderId) {
+        String clearCartSql = "DELETE FROM Cart_Products WHERE buyer_id = ?";
+        // שאילתת SQL קלאסית שמעתיקה נתונים מטבלה אחת לאחרת!
+        String copyHistorySql = "INSERT INTO Cart_Products (buyer_id, product_id, quantity) " +
+                                "SELECT ?, product_id, quantity FROM Order_Products WHERE order_id = ?";
+                                
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            // שלב א': ריקון העגלה הנוכחית
+            try (PreparedStatement clearStmt = conn.prepareStatement(clearCartSql)) {
+                clearStmt.setInt(1, buyerId);
+                clearStmt.executeUpdate();
+            }
+            
+            // שלב ב': העתקת המוצרים מההזמנה לעגלה
+            try (PreparedStatement copyStmt = conn.prepareStatement(copyHistorySql)) {
+                copyStmt.setInt(1, buyerId);
+                copyStmt.setInt(2, orderId);
+                copyStmt.executeUpdate();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error replacing cart: " + e.getMessage());
+        }
+    }
+
 }
