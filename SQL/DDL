@@ -56,3 +56,11 @@ CREATE TABLE Order_Products (
     quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
     PRIMARY KEY (order_id, product_id)
 );
+
+-- 8. Create Cart_Products Table (Active Carts before payment)
+CREATE TABLE Cart_Products (
+    buyer_id INT NOT NULL REFERENCES Users(user_id) ON DELETE CASCADE,
+    product_id INT NOT NULL REFERENCES Products(product_id) ON DELETE CASCADE,
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
+    PRIMARY KEY (buyer_id, product_id)
+);

@@ -60,12 +60,23 @@ GROUP BY u.user_id, u.username
 ORDER BY total_revenue DESC;
 
 -- 8. עגלות נטושות לעומת קניות (במקום סטוק נמוך - דורש HAVING ו-COALESCE)
-SELECT p.name, COALESCE(SUM(cp.quantity), 0) as in_carts, COALESCE(SUM(op.quantity), 0) as sold
-FROM Products p
-LEFT JOIN Cart_Products cp ON p.product_id = cp.product_id
-LEFT JOIN Order_Products op ON p.product_id = op.product_id
-GROUP BY p.product_id, p.name
-HAVING COALESCE(SUM(cp.quantity), 0) > COALESCE(SUM(op.quantity), 0);
+WITH CartTotals AS (
+    SELECT product_id, SUM(quantity) as total_in_carts
+    FROM Cart_Products
+    GROUP BY product_id
+), 
+OrderTotals AS (
+    SELECT product_id, SUM(quantity) as total_sold
+    FROM Order_Products
+    GROUP BY product_id
+) 
+SELECT p.name, 
+       COALESCE(ct.total_in_carts, 0) as in_carts, 
+       COALESCE(ot.total_sold, 0) as sold 
+FROM Products p 
+LEFT JOIN CartTotals ct ON p.product_id = ct.product_id 
+LEFT JOIN OrderTotals ot ON p.product_id = ot.product_id 
+WHERE COALESCE(ct.total_in_carts, 0) > COALESCE(ot.total_sold, 0);
 
 -- 9. התפלגות הכנסות לפי קטגוריה
 SELECT p.category, SUM((p.price + COALESCE(sp.extra_pay,0)) * op.quantity) as category_revenue
